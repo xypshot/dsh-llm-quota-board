@@ -41,10 +41,10 @@
           "source": {
             "type": "git",
             "url": "https://github.com/xypshot/dsh-llm-quota-board",
-            "commit": "7216f9680d20b79d17c4cacb6d01abad04a27eb2"
+            "commit": "e4c44cf1da12673c4b4c7e1582e07c0a517cc723"
           },
           "engines": {
-            "dsh": "^0.2.1-rc.1"
+            "dsh": "^0.2.1-alpha.4"
           }
         }
       ]
