@@ -1,0 +1,53 @@
+{
+  "format": 1,
+  "title": {
+    "en": "xypshot DSH Plugins",
+    "zh": "xypshot 的 DSH 插件"
+  },
+  "description": {
+    "en": "DSH plugins published by xypshot.",
+    "zh": "xypshot 发布的 DSH 插件索引。"
+  },
+  "plugins": [
+    {
+      "name": "@local/llm-quota-board",
+      "title": {
+        "en": "Quota Overview",
+        "zh": "额度总览"
+      },
+      "description": {
+        "en": "Shows balances and quotas for every provider and model deployed in Settings -> Models, including DeepSeek account balance and z.ai coding-plan windows.",
+        "zh": "查看设置 → 模型中已部署的全部供应商和模型的余额与额度，支持 DeepSeek 账号余额和 z.ai 套餐窗口。"
+      },
+      "icon": "icon.svg",
+      "author": "xypshot",
+      "repository": {
+        "url": "https://github.com/xypshot/dsh-llm-quota-board"
+      },
+      "metadata": {
+        "keywords": [
+          "dsh",
+          "quota",
+          "balance",
+          "deepseek",
+          "zai",
+          "usage"
+        ]
+      },
+      "versions": [
+        {
+          "version": "0.1.0",
+          "publishTimestamp": 1794386073,
+          "source": {
+            "type": "git",
+            "url": "https://github.com/xypshot/dsh-llm-quota-board",
+            "commit": "7216f9680d20b79d17c4cacb6d01abad04a27eb2"
+          },
+          "engines": {
+            "dsh": "^0.2.1-rc.1"
+          }
+        }
+      ]
+    }
+  ]
+}
