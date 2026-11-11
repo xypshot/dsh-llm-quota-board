@@ -13,9 +13,11 @@
 |---|---|
 | `deepseek-account` | DeepSeek 账号充值余额 + 赠送余额（不需要 API Key） |
 | `deepseek`（API Key） | `GET https://api.deepseek.com/user/balance` |
-| `zai` / `zhipu` / `bigmodel` / `glm` | Coding Plan 5h / 7d 已用百分比与重置时间 |
+| `zai` / `zhipu` / `bigmodel` / `glm` | Coding Plan 5h / 7d 已用百分比、剩余额度与重置时间 |
+| `kimi` / `moonshot` | `GET /v1/users/me/balance`（可用余额 + 代金券） |
+| `siliconflow` / 硅基流动 | `GET https://api.siliconflow.cn/v1/user/info` 余额 |
 
-其他供应商仍会列出模型，但标记「额度接口未适配」，不会伪造数字。
+其他供应商仍会列出模型，但标记「额度接口未适配」，不会伪造数字。通义（DashScope）、火山方舟、腾讯混元、百度千帆等平台的余额只有控制台级接口，API Key 无法查询，故暂不支持。
 
 额度是**供应商/账户级**的：同一供应商下的多个模型共享一个额度，界面按供应商分组并列出全部模型。
 

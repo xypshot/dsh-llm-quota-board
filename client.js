@@ -97,6 +97,7 @@ window.__ModuleLoader__.load({
       bonus: '赠送',
       models: '模型',
       noModels: '无可用模型',
+      noneConfigured: '还没有已配置凭据的供应商，请在 设置 → 模型 中添加',
       used: '已用 {percent}%',
       remaining: '{window} 剩余 {percent}%',
       resetIn: '重置 {time}',
@@ -139,6 +140,7 @@ window.__ModuleLoader__.load({
       bonus: 'Bonus',
       models: 'Models',
       noModels: 'No models',
+      noneConfigured: 'No provider with configured credentials yet — add one in Settings → Models',
       used: '{percent}% used',
       remaining: '{window} {percent}% left',
       resetIn: 'resets in {time}',
@@ -215,7 +217,7 @@ window.__ModuleLoader__.load({
 
     function modeLabel(mode, t) {
       if (mode === 'account') return t('account')
-      if (mode === 'api-key') return t('apiKey')
+      if (mode === 'api-key' || mode === 'moonshot' || mode === 'siliconflow') return t('apiKey')
       if (mode === 'coding-plan') return t('codingPlan')
       return t('unknown')
     }
@@ -389,6 +391,9 @@ window.__ModuleLoader__.load({
         return h('div', { className: 'llm-quota-empty' }, props.error ? `${t('error')}: ${props.error}` : t('loading'))
       }
       const providers = Array.isArray(data.providers) ? data.providers : []
+      const visible = props.compact === true
+        ? providers.filter((provider) => provider.status !== 'unconfigured' && provider.status !== 'unsupported')
+        : providers
       const current = data.current
       const boardError = props.error ?? data.error
       const missing = current !== null && current !== undefined && !providers.some((provider) => provider.id === current.provider)
@@ -398,9 +403,11 @@ window.__ModuleLoader__.load({
           : null,
         providers.length === 0
           ? h('div', { className: 'llm-quota-empty' }, boardError ? `${t('error')}: ${boardError}` : t('empty'))
-          : h('div', { className: 'llm-quota-grid' },
-            providers.map((provider) => h(ProviderCard, { key: provider.id, provider, current, t }))
-          ),
+          : visible.length === 0
+            ? h('div', { className: 'llm-quota-empty' }, t('noneConfigured'))
+            : h('div', { className: 'llm-quota-grid' },
+              visible.map((provider) => h(ProviderCard, { key: provider.id, provider, current, t }))
+            ),
         h('div', { className: 'llm-quota-foot' },
           h('span', null, data.checkedAt ? t('updated', { time: formatTime(data.checkedAt) }) : ''),
           boardError ? h('span', { className: 'llm-quota-error' }, boardError) : null
@@ -595,7 +602,7 @@ window.__ModuleLoader__.load({
           : snapshot.status === 'error' ? t('error') : t('loading')
       const fiveHour = currentProvider?.status === 'ready' ? fiveHourWindow(currentProvider.windows) : undefined
       const fiveHourPercent = fiveHour !== undefined ? 100 - Math.round(fiveHour.usedPercent) : undefined
-      const count = providers.length
+      const count = providers.filter((provider) => provider.status !== 'unconfigured' && provider.status !== 'unsupported').length
 
       return h('div', { ref: rootRef, className: 'llm-quota-dock', 'data-open': open ? 'true' : undefined },
         h('div', { className: 'llm-quota-bar' },

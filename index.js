@@ -197,6 +197,37 @@ function parseAccountBalance(payload) {
   }))
 }
 
+function parseMoonshotBalance(payload) {
+  const root = asRecord(payload)
+  const data = asRecord(root?.data)
+  if (root === undefined || data === undefined) throw new Error('Kimi 余额响应不可解析')
+  const available = toNumber(data.available_balance)
+  const voucher = toNumber(data.voucher_balance)
+  const total = toNumber(data.total_balance)
+  const amount = total ?? (available !== undefined || voucher !== undefined ? (available ?? 0) + (voucher ?? 0) : undefined)
+  if (amount === undefined) throw new Error('Kimi 余额响应中没有可用金额')
+  const currency = typeof data.currency === 'string' && data.currency !== '' ? data.currency : 'CNY'
+  return [
+    {
+      currency,
+      total: round2(amount),
+      ...(available === undefined ? {} : { toppedUp: round2(available) }),
+      ...(voucher === undefined || voucher === 0 ? {} : { bonus: round2(voucher) }),
+    },
+  ]
+}
+
+function parseSiliconFlowBalance(payload) {
+  const root = asRecord(payload)
+  const data = asRecord(root?.data)
+  if (root === undefined || data === undefined) throw new Error('硅基流动余额响应不可解析')
+  const balance = toNumber(data.balance) ?? toNumber(data.totalBalance)
+  if (balance === undefined) throw new Error('硅基流动余额响应中没有可用金额')
+  const charge = toNumber(data.chargeBalance)
+  const result = { currency: 'CNY', total: round2(balance) }
+  return [charge === undefined ? result : { ...result, toppedUp: round2(charge) }]
+}
+
 function parseZaiQuota(payload) {
   const root = asRecord(payload)
   const body = asRecord(root?.data)
@@ -401,7 +432,9 @@ export function apply(ctx) {
 
     if (id.includes('deepseek-account') || namespace.includes('deepseek-account')) return 'account'
     if (provider.meta.nativeAuth?.oauth === true && id.includes('deepseek')) return 'account'
-    if (/opencode|openrouter|kimi|moonshot|minimax|openai|anthropic|claude|gemini/.test(text)) return 'unsupported'
+    if (/siliconflow|硅基/.test(text)) return 'siliconflow'
+    if (/kimi|moonshot/.test(text)) return 'moonshot'
+    if (/opencode|openrouter|minimax|openai|anthropic|claude|gemini/.test(text)) return 'unsupported'
     if (text.includes('zai') || text.includes('zhipu') || text.includes('bigmodel') || text.includes('glm')) return 'coding-plan'
     if (text.includes('deepseek')) return 'api-key'
     return 'unsupported'
@@ -460,6 +493,36 @@ export function apply(ctx) {
     throw lastError ?? new Error('额度查询失败')
   }
 
+  const queryMoonshot = async (provider) => {
+    const resolved = await resolveProviderKey(provider, credentialRefs(provider.meta, provider.config, ['MOONSHOT_API_KEY', 'KIMI_API_KEY', 'MOONSHOT_CN_API_KEY']))
+    if (resolved === undefined) {
+      return { mode: 'moonshot', status: 'unconfigured', balances: [], windows: [] }
+    }
+    const headers = { authorization: `Bearer ${resolved.key}`, accept: 'application/json' }
+    let lastError
+    for (const base of ['https://api.moonshot.cn', 'https://api.kimi.com']) {
+      try {
+        const payload = await fetchJson(`${base}/v1/users/me/balance`, headers)
+        return { mode: 'moonshot', status: 'ready', balances: parseMoonshotBalance(payload), windows: [] }
+      } catch (error) {
+        lastError = error
+      }
+    }
+    throw lastError ?? new Error('额度查询失败')
+  }
+
+  const querySiliconFlow = async (provider) => {
+    const resolved = await resolveProviderKey(provider, credentialRefs(provider.meta, provider.config, ['SILICONFLOW_API_KEY', 'SF_API_KEY']))
+    if (resolved === undefined) {
+      return { mode: 'siliconflow', status: 'unconfigured', balances: [], windows: [] }
+    }
+    const payload = await fetchJson('https://api.siliconflow.cn/v1/user/info', {
+      authorization: `Bearer ${resolved.key}`,
+      accept: 'application/json',
+    })
+    return { mode: 'siliconflow', status: 'ready', balances: parseSiliconFlowBalance(payload), windows: [] }
+  }
+
   const getQuota = async (provider, force) => {
     const now = Date.now()
     const cached = quotaCache.get(provider.id)
@@ -477,6 +540,8 @@ export function apply(ctx) {
         if (mode === 'account') value = await queryAccount()
         else if (mode === 'api-key') value = await queryDeepSeekApi(provider)
         else if (mode === 'coding-plan') value = await queryZai(provider)
+        else if (mode === 'moonshot') value = await queryMoonshot(provider)
+        else if (mode === 'siliconflow') value = await querySiliconFlow(provider)
         else value = { mode: 'unsupported', status: 'unsupported', balances: [], windows: [] }
         value = { ...value, fetchedAt: Date.now() }
       } catch (error) {
