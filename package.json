@@ -6,7 +6,7 @@
   "description": "Quota overview for every provider and model deployed in Settings -> Models",
   "license": "MIT",
   "engines": {
-    "dsh": "^0.2.1-rc.1"
+    "dsh": "^0.2.1-alpha.4"
   },
   "exports": {
     ".": "./index.js",
