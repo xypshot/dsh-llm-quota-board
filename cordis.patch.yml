@@ -1,0 +1,3 @@
+- insert:
+    - id: llm-quota
+      name: '@local/llm-quota-board'

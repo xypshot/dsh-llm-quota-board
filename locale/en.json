@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Quota Overview",
+    "description": "Shows balances and quotas for every provider and model deployed in Settings -> Models."
+  }
+}
