@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "description": "Quota overview for every provider and model deployed in Settings -> Models",
+  "license": "MIT",
+  "engines": {
+    "dsh": "^0.2.1-rc.1"
+  },
   "exports": {
     ".": "./index.js",
     "./client": "./client.js",
@@ -16,7 +20,8 @@
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "dsh": {
     "bundle": {
